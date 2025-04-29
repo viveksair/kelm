@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# Defaults
+ACTION="get"
+NAMESPACE="default"
+
+# Parse subcommand if it's describe, logs, or top
+if [[ "$1" == "describe" || "$1" == "logs" || "$1" == "top" ]]; then
+  ACTION="$1"
+  shift
+fi
+
+# Resource type (e.g., pods, svc, deployments, all)
+RESOURCE=$1
+shift
+
+# Parse remaining flags
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    -r|--release)
+      RELEASE="$2"
+      shift 2
+      ;;
+    -n|--namespace)
+      NAMESPACE="$2"
+      shift 2
+      ;;
+    *)
+      echo "Unknown argument: $1"
+      exit 1
+      ;;
+  esac
+done
+
+# Validate inputs
+if [[ -z "$RESOURCE" || -z "$RELEASE" ]]; then
+  echo "Usage: kelm [get|describe|logs|top] <resource> -r <release> [-n <namespace>]"
+  exit 1
+fi
+
+LABEL_SELECTOR="app.kubernetes.io/instance=$RELEASE"
+
+# Handle different actions
+if [[ "$ACTION" == "get" ]]; then
+  kubectl get "$RESOURCE" -n "$NAMESPACE" -l "$LABEL_SELECTOR"
+
+elif [[ "$ACTION" == "describe" ]]; then
+  kubectl get "$RESOURCE" -n "$NAMESPACE" -l "$LABEL_SELECTOR" -o name | while read -r res; do
+    echo -e "\n--- Describing $res ---"
+    kubectl describe "$res" -n "$NAMESPACE"
+  done
+
+elif [[ "$ACTION" == "logs" ]]; then
+  if [[ "$RESOURCE" != "pod" && "$RESOURCE" != "pods" ]]; then
+    echo "Error: logs action only supported for pods"
+    exit 1
+  fi
+  kubectl get pods -n "$NAMESPACE" -l "$LABEL_SELECTOR" -o name | while read -r pod; do
+    echo -e "\n--- Logs for $pod ---"
+    kubectl logs "$pod" -n "$NAMESPACE"
+  done
+
+elif [[ "$ACTION" == "top" ]]; then
+  if [[ "$RESOURCE" != "pod" && "$RESOURCE" != "pods" ]]; then
+    echo "Error: top action only supported for pods"
+    exit 1
+  fi
+  PODS=$(kubectl get pods -n "$NAMESPACE" -l "$LABEL_SELECTOR" -o name | sed 's|pod/||')
+  if [[ -z "$PODS" ]]; then
+    echo "No pods found for release '$RELEASE'"
+    exit 1
+  fi
+  kubectl top pods -n "$NAMESPACE" --field-selector metadata.name=$(echo "$PODS" | paste -sd, -)
+else
+  echo "Unsupported action: $ACTION"
+  exit 1
+fi
