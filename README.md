@@ -1,4 +1,9 @@
-# kelm - Helm Release Filter for kubectl
+
+# kelm 🧭 – Helm-Aware `kubectl` Filtering Tool
+
+[![Shell Script](https://img.shields.io/badge/built_with-bash-1f425f.svg)](https://www.gnu.org/software/bash/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/yourname/kelm/pulls)
 
 `kelm` is a `kubectl` plugin that lets you select a Helm release and automatically filters all relevant `kubectl` commands by namespace and label.
 
@@ -63,16 +68,6 @@ k get pods
 ```bash
 kubectl kelm clear
 ```
-
-# kelm 🧭 – Helm-Aware `kubectl` Filtering Tool
-
-[![Shell Script](https://img.shields.io/badge/built_with-bash-1f425f.svg)](https://www.gnu.org/software/bash/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/yourname/kelm/pulls)
-
-> 🔍 Select a Helm release and automatically scope all `kubectl` commands to its namespace and label. Use `kelm` with `kubectl` like a pro.
-
----
 
 ## ✨ Features
 
