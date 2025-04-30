@@ -1,54 +1,86 @@
-# 📦 kelm
+# kelm - Helm Release Filter for kubectl
 
-> Extended lightweight CLI on top of `kubectl` + `helm` to operate resources by Helm **release**.
+`kelm` is a `kubectl` plugin that lets you select a Helm release and automatically filters all relevant `kubectl` commands by namespace and label.
+
+## ✨ Features
+
+- Select a Helm release (`kubectl kelm select`)
+- Automatically filters `kubectl` calls by namespace and release label
+- Easily reset the selection (`kubectl kelm clear`)
+- Smart wrapper skips filters for global commands (`-A`) or unsupported ones
+
+## 📦 Installation
+
+```bash
+git clone https://github.com/yourname/kelm.git
+cd kelm
+chmod +x kubectl-kelm
+chmod +x wrapper.sh
+cp kubectl-kelm ~/.local/bin/
+source wrapper.sh
+```
+
+## 🔧 Setup
+```bash
+source /path/to/kelm/wrapper.sh
+```
+
+## 🚀 Usage
+```sh
+kubectl kelm select     # Pick a Helm release
+k get pods              # Filters by namespace and label
+k get pods -A           # Shows all pods (no filtering)
+kubectl kelm clear      # Clear the release selection
+```
+
+## 📂 Config
+kelm stores the selected release in:
+```sh
+~/.kube/kelm/config   # Format: release,namespace
+```
+
+## 🧪 Examples
+```sh
+kubectl kelm select
+# Select: myapp / staging
+
+k get pods
+# => kubectl get pods -n staging --selector=app.kubernetes.io/instance=myapp
+
+k get svc
+# => kubectl get svc -n staging --selector=app.kubernetes.io/instance=myapp
+
+k get pods -A
+# => kubectl get pods -A   (no filters added)
+
+kubectl kelm clear
+k get pods
+# => kubectl get pods      (runs plain command)
+
+```
+
+❌ Clear Current Selection
+```bash
+kubectl kelm clear
+```
+
+# kelm 🧭 – Helm-Aware `kubectl` Filtering Tool
+
+[![Shell Script](https://img.shields.io/badge/built_with-bash-1f425f.svg)](https://www.gnu.org/software/bash/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/yourname/kelm/pulls)
+
+> 🔍 Select a Helm release and automatically scope all `kubectl` commands to its namespace and label. Use `kelm` with `kubectl` like a pro.
 
 ---
 
 ## ✨ Features
 
-- Quickly get, describe, tail logs, or top metrics for resources deployed via Helm releases.
-- Simple and consistent usage across pods, services, deployments, etc.
-- Namespace-aware (`-n` flag support).
-- Minimal dependencies (`kubectl`, `helm`, `metrics-server` for `top`).
+- 🔍 Interactive Helm release selector
+- 🔐 Automatically applies `--selector=app.kubernetes.io/instance=<release>` and `-n <namespace>` to kubectl
+- 🔄 Full compatibility with `kubectl`; nothing injected on `-A` or unsupported commands
+- 🧼 Clear selection at any time
+- 🧠 Smart shell wrapper that doesn't break your normal workflows
 
----
-
-## 📥 Installation
-
-### Option 1: Manual Installation
-
-To install `kelm` manually on your local machine, follow these steps:
-
-1. **Clone the Repository**
-
-    ```bash
-    git clone https://github.com/yourname/kelm.git
-    cd kelm
-    ```
-
-2. **Make the Script Executable**
-
-    Ensure that the `kelm` script has executable permissions:
-
-    ```bash
-    chmod +x kelm
-    ```
-
-3. **Move `kelm` to a Directory in Your PATH**
-
-    Move the `kelm` script to `/usr/local/bin/` (or any directory in your system's `$PATH`):
-
-    ```bash
-    sudo mv kelm /usr/local/bin/
-    ```
-
-    Now, `kelm` is available globally for use in your terminal.
-
----
-
-### Usage
-
-You can run `kelm` from the command line by providing it the following options:
-
-```bash
-kelm [get|describe|logs|top] <resource> -r <release> [-n <namespace>]
+## 🪪 License
+MIT License — see LICENSE

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+
+CONFIG_FILE="$HOME/.kube/kelm/config"
+
+function select_release() {
+  releases=$(helm list -A --output json | jq -r '.[] | "\(.name),\(.namespace)"')
+  
+  if [[ -z "$releases" ]]; then
+    echo "No Helm releases found."
+    exit 1
+  fi
+
+  echo "Available Helm releases:"
+  IFS=$'\n' read -r -d '' -a release_array < <(printf '%s\0' "$releases")
+
+  for i in "${!release_array[@]}"; do
+    name=$(echo "${release_array[$i]}" | cut -d',' -f1)
+    ns=$(echo "${release_array[$i]}" | cut -d',' -f2)
+    printf "%2d) %s (namespace: %s)\n" $((i + 1)) "$name" "$ns"
+  done
+
+  read -p "Enter release number: " choice
+  index=$((choice - 1))
+
+  if [[ -n "${release_array[$index]}" ]]; then
+    echo "${release_array[$index]}" > "$CONFIG_FILE"
+    echo "Selected release: ${release_array[$index]}"
+  else
+    echo "Invalid selection"
+    exit 1
+  fi
+}
+
+function get_selected_release() {
+  if [[ -f "$CONFIG_FILE" ]]; then
+    cat "$CONFIG_FILE"
+  fi
+}
+
+function unset_release() {
+  rm -f "$CONFIG_FILE"
+  echo "Cleared selected release"
+}
+
+case "$1" in
+  select)
+    select_release
+    ;;
+  current)
+    get_selected_release
+    ;;
+  clear)
+    unset_release
+    ;;
+  *)
+    echo "Usage: kelm select | current | clear"
+    ;;
+esac
